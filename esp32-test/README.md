@@ -35,7 +35,8 @@ Details (wound form) and Learn (sensor guides, research library). Metric pages s
    Allow inbound TCP 5000 once (admin PowerShell):
    `New-NetFirewallRule -DisplayName "WoundSense 5000" -Direction Inbound -Protocol TCP -LocalPort 5000 -Action Allow -Profile Any`
 2. **ESP32**: flash `woundsense_ble.ino`. Wire the moisture sensor's AOUT to GPIO 34 and
-   **calibrate `ADC_DRY` / `ADC_WET`** (the values in the sketch are placeholders).
+   **calibrate `ADC_DRY` / `ADC_WET`** for your probe (the sketch has the values measured on this
+   build: about 4095 dry and 2440-2500 wet; re-measure if you change the probe).
 3. **App**:
    ```powershell
    cd esp32-test\app

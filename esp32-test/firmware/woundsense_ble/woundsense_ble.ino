@@ -5,7 +5,7 @@
 // Libraries (Arduino Library Manager): "DHT sensor library" + "Adafruit Unified Sensor".
 // BLE comes with the ESP32 Arduino core. Board: "ESP32 Dev Module".
 // Wiring: DHT22 VCC -> 3V3, GND -> GND, DATA -> GPIO 4 (add 10k pull-up to 3V3 if your module has none).
-//         Moisture sensor VCC -> 3V3, GND -> GND, AOUT -> GPIO 34 (ADC1; ADC2 pins clash with BLE/Wi-Fi).
+//         Moisture sensor VCC -> 3V3, GND -> GND, AOUT -> GPIO 34 (an ADC1 input-only pin; ADC2 pins stop working when Wi-Fi is on).
 
 #include <BLEDevice.h>
 #include <BLEServer.h>
@@ -16,12 +16,17 @@
 #define DHT_PIN 4
 #define DHT_TYPE DHT22
 
-// Moisture sensor calibration. These two raw ADC values are PLACEHOLDERS: read the raw value
-// in open air (dry) and with the sensor wetted (wet) from the serial monitor, then edit them.
-// Capacitive sensors read LOWER when wet; if yours reads higher when wet, swap the two values.
+// The ESP32 has only one 3V3 pin. With no breadboard to split it, power the DHT22 from a GPIO
+// instead (it draws ~1.5 mA): wire DHT22 VCC to this pin, e.g. #define DHT_POWER_PIN 18.
+// Leave at -1 when DHT22 VCC is wired to 3V3.
+#define DHT_POWER_PIN -1
+
+// Moisture sensor calibration (resistive HW-103 probe): the raw ADC value reads HIGH when dry
+// and drops when wet. Calibrated from the serial monitor: dry 4095, wet about 2438-2500.
+// Re-measure if you change sensor, water type or how deep you dip the prongs.
 #define MOISTURE_PIN 34
-#define ADC_DRY 3200
-#define ADC_WET 1400
+#define ADC_DRY 4095  // raw reading with the prongs dry in air (measured)
+#define ADC_WET 2500  // raw reading with the prongs wet (measured lowest: 2438)
 
 #define DEVICE_NAME "WoundSense-ESP32"
 #define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
@@ -41,6 +46,11 @@ class ServerCallbacks : public BLEServerCallbacks {
 
 void setup() {
   Serial.begin(115200);
+  if (DHT_POWER_PIN >= 0) {
+    pinMode(DHT_POWER_PIN, OUTPUT);
+    digitalWrite(DHT_POWER_PIN, HIGH);
+    delay(1500);  // let the DHT22 start up
+  }
   dht.begin();
 
   BLEDevice::init(DEVICE_NAME);

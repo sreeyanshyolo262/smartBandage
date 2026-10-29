@@ -13,3 +13,9 @@ esp32-test/app/src-tauri/target/
 esp32-test/app/build.log
 data/images/
 data/scans/
+
+# patent drawings: keep private until filed (public repo = public disclosure)
+patent_3d/
+# IDE / scratch
+esp32-test/app/src-tauri/gen/android/.idea/
+docs/.edge_profile_tmp/
